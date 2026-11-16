@@ -1,0 +1,5 @@
+*.osm
+mapdata.json
+routes_dbg.json
+g.pkl
+.DS_Store

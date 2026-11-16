@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e7ebea">
+<title>Step-Free Routes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: a phone. Real Soho map full-bleed underneath; one floating card on top, one sheet at the bottom. */
+:root{
+  --desk:#e7ebea; --bg:#f6f7f7; --surface:#ffffff; --fg:#101615; --muted:#6a7572; --line:#e7ebea; --press:#f0f3f2;
+  --accent:#0b7a70; --accent-deep:#075a53; --accent-soft:#e3f2ef; --on-accent:#ffffff;
+  --ok:#1f8a4c; --warn:#c77700; --bad:#d23c2f; --ok-soft:#e5f4ea; --warn-soft:#fdf1dc; --bad-soft:#fbe6e3;
+  --m-ground:#eef0ed; --m-bld:#e2e5e1; --m-bld-edge:#d6dad5; --m-road:#ffffff; --m-case:#d7dbd6; --m-major:#ffffff; --m-major-case:#cdd2cc;
+  --m-foot:#c3c9c3; --m-park:#cfe5c6; --m-label:#6f7b77; --m-alt:#9aa7a3; --m-alt-case:#ffffff;
+  --shadow:0 1px 2px rgba(16,22,21,.06),0 8px 24px rgba(16,22,21,.10);
+  --ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --desk:#080b0b; --bg:#0f1414; --surface:#182020; --fg:#eef3f2; --muted:#94a29e; --line:#26302f; --press:#202a29;
+  --accent:#3fbfb1; --accent-deep:#1d8f84; --accent-soft:#16312e; --on-accent:#05211e;
+  --ok:#4fcc80; --warn:#f0a83a; --bad:#f2685b; --ok-soft:#14301f; --warn-soft:#352813; --bad-soft:#3a1c19;
+  --m-ground:#141a1a; --m-bld:#1d2424; --m-bld-edge:#252e2d; --m-road:#2c3635; --m-case:#1a2121; --m-major:#384442; --m-major-case:#1a2121;
+  --m-foot:#33403e; --m-park:#1b3326; --m-label:#8c9c98; --m-alt:#5d6e6a; --m-alt-case:#141a1a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --desk:#080b0b; --bg:#0f1414; --surface:#182020; --fg:#eef3f2; --muted:#94a29e; --line:#26302f; --press:#202a29;
+  --accent:#3fbfb1; --accent-deep:#1d8f84; --accent-soft:#16312e; --on-accent:#05211e;
+  --ok:#4fcc80; --warn:#f0a83a; --bad:#f2685b; --ok-soft:#14301f; --warn-soft:#352813; --bad-soft:#3a1c19;
+  --m-ground:#141a1a; --m-bld:#1d2424; --m-bld-edge:#252e2d; --m-road:#2c3635; --m-case:#1a2121; --m-major:#384442; --m-major-case:#1a2121;
+  --m-foot:#33403e; --m-park:#1b3326; --m-label:#8c9c98; --m-alt:#5d6e6a; --m-alt-case:#141a1a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.45); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--desk);color:var(--fg);font-family:var(--ui);font-size:16px;-webkit-font-smoothing:antialiased;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* device: 393 x 852 screen (iPhone 15 Pro), scaled as one piece to fit the window */
+.stage{position:relative;flex:none;width:calc(421px*var(--s,1));height:calc(880px*var(--s,1))}
+.device{position:absolute;left:0;top:0;width:421px;height:880px;padding:10.5px;border:3.5px solid transparent;border-radius:72px;
+  transform:scale(var(--s,1));transform-origin:0 0;
+  background:linear-gradient(#0b0d0d,#0b0d0d) padding-box,linear-gradient(150deg,#b4bbba,#5d6564 28%,#d2d7d6 50%,#5a6261 74%,#a3abaa) border-box;
+  box-shadow:inset 0 0 0 1.5px #262c2b,0 60px 90px -30px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.16)}
+.hw{position:absolute;width:4.5px;border-radius:2px 0 0 2px;left:-8px;background:linear-gradient(90deg,#6e7675,#c6cccb 65%,#8b9392)}
+.hw.r{left:auto;right:-8px;border-radius:0 2px 2px 0;background:linear-gradient(270deg,#6e7675,#c6cccb 65%,#8b9392)}
+.phone{position:relative;width:100%;height:100%;background:var(--bg);border-radius:58px;overflow:hidden;isolation:isolate}
+.home{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:var(--fg);transform:translateX(-50%);z-index:60;pointer-events:none}
+.status{position:absolute;top:0;left:0;right:0;height:50px;padding:16px 30px 0 34px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;z-index:50;pointer-events:none}
+.status .island{position:absolute;left:50%;top:11px;width:118px;height:34px;border-radius:20px;background:#0c0f0f;transform:translateX(-50%)}
+@media (max-width:520px){
+  .stage{width:100%;height:100%}
+  .device{position:static;width:100%;height:100%;padding:0;border:0;border-radius:0;background:none;box-shadow:none;transform:none}
+  .hw,.home{display:none}
+  .phone{border-radius:0}
+  .status{display:none}
+}
+.screen{position:absolute;inset:0 0 78px 0}
+
+/* ---------- map ---------- */
+#map{position:absolute;inset:0;width:100%;height:100%;display:block;background:var(--m-ground);touch-action:none}
+.m-bld{fill:var(--m-bld);stroke:var(--m-bld-edge);stroke-width:.8}
+.m-park{fill:var(--m-park)}
+.m-r{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.m-svc{stroke:var(--m-road);stroke-width:4}
+.m-minor-c{stroke:var(--m-case);stroke-width:12}
+.m-minor{stroke:var(--m-road);stroke-width:9.5}
+.m-major-c{stroke:var(--m-major-case);stroke-width:19}
+.m-major{stroke:var(--m-major);stroke-width:16}
+.m-foot{stroke:var(--m-foot);stroke-width:1.6;stroke-dasharray:4 4}
+.m-lbl{fill:var(--m-label);font:600 13px var(--ui);letter-spacing:.02em;paint-order:stroke;stroke:var(--m-ground);stroke-width:3px;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle}
+.few .m-lbl:not(.maj){display:none}
+.m-lbl.maj{font-size:14px;fill:var(--fg);opacity:.72}
+.rt{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.rt-alt-c{stroke:var(--m-alt-case);stroke-width:13}
+.rt-alt{stroke:var(--m-alt);stroke-width:8}
+.rt-c{stroke:var(--accent-deep);stroke-width:15}
+.rt-f{stroke:var(--accent);stroke-width:10}
+.rt-done{stroke:var(--m-alt);stroke-width:10;opacity:.0}
+.rt-hit{stroke:transparent;stroke-width:40;cursor:pointer}
+
+/* ---------- floating chrome ---------- */
+.top{position:absolute;left:12px;right:12px;top:58px;display:flex;flex-direction:column;gap:8px;z-index:5}
+@media (max-width:520px){.top{top:max(14px,env(safe-area-inset-top,0px))}}
+.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow)}
+.trip{display:grid;grid-template-columns:22px 1fr 40px;align-items:center;padding:6px 8px 6px 16px}
+.trip .rail{grid-row:1/3;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:center}
+.trip .o{width:11px;height:11px;border-radius:50%;border:3px solid var(--accent)}
+.trip .d{width:11px;height:11px;border-radius:3px;background:var(--fg)}
+.trip .dots{width:2px;height:22px;background:repeating-linear-gradient(var(--muted) 0 3px,transparent 3px 6px);opacity:.5}
+.trip .place{padding:11px 10px;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trip .place+.place{border-top:1px solid var(--line)}
+.trip .swap{grid-column:3;grid-row:1/3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:2px 12px 8px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:var(--surface);box-shadow:var(--shadow);font-size:14px;font-weight:600}
+.chip .led{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--ok-soft)}
+.chip[aria-pressed="false"] .led{background:var(--muted);box-shadow:0 0 0 4px var(--line)}
+.chip[aria-pressed="false"]{color:var(--muted)}
+.chip svg{color:var(--ok)}
+.chip .sub{color:var(--muted);font-weight:500}
+
+.navcard{display:flex;align-items:center;gap:14px;padding:14px 18px 14px 14px;background:var(--fg);color:var(--bg);border-radius:24px;box-shadow:var(--shadow)}
+.navcard .turn{width:56px;height:56px;border-radius:16px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;flex:none}
+.navcard .dist{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.navcard .street{font-size:16px;font-weight:600;opacity:.8;margin-top:4px}
+.navcard.next{background:var(--surface);color:var(--fg);padding:9px 14px;border-radius:16px;gap:10px;font-size:14px;font-weight:600;width:max-content;max-width:100%}
+.navcard.next svg{color:var(--muted)}
+
+.fab{position:absolute;right:14px;z-index:6;height:52px;padding:0 18px 0 14px;border-radius:26px;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;transition:bottom .25s ease}
+.fab svg{color:var(--bad)}
+.locate{position:absolute;left:14px;z-index:6;width:52px;height:52px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--accent);transition:bottom .25s ease}
+
+/* ---------- sheets ---------- */
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:7;background:var(--surface);border-radius:28px 28px 0 0;box-shadow:0 -1px 0 var(--line),0 -10px 30px rgba(16,22,21,.08);padding:8px 16px 16px}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.routes{display:flex;flex-direction:column;gap:4px;margin:0 -8px 12px}
+.ro{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;padding:12px;border-radius:18px;text-align:left;width:100%}
+.ro[aria-pressed="true"]{background:var(--accent-soft)}
+.ro .time{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.ro .time small{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:6px}
+.ro .via{grid-column:1;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro .ev{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;margin-top:6px}
+.ro .ev.ok{color:var(--ok)} .ro .ev.warn{color:var(--warn)} .ro .ev.bad{color:var(--bad)}
+.score{grid-column:2;grid-row:1/3;display:flex;flex-direction:column;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;
+  background:conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0);position:relative}
+.score::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--surface)}
+.ro[aria-pressed="true"] .score::before{background:var(--accent-soft)}
+.score b{position:relative;font-size:17px;font-weight:800;line-height:1}
+.score i{position:relative;font-style:normal;font-size:10px;font-weight:700;color:var(--muted);margin-top:1px}
+.primary{width:100%;height:58px;border-radius:18px;background:var(--accent);color:var(--on-accent);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px}
+.secondary{width:100%;height:58px;border-radius:18px;background:var(--press);font-size:17px;font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}
+
+.navbar{display:flex;align-items:center;gap:12px}
+.navbar .eta{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.navbar .eta-sub{color:var(--muted);font-weight:600;font-size:15px;margin-top:4px}
+.navbar .end{margin-left:auto;height:50px;padding:0 22px;border-radius:25px;background:var(--bad-soft);color:var(--bad);font-weight:700}
+
+.alert-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.alert-ic{width:48px;height:48px;border-radius:14px;background:var(--warn-soft);color:var(--warn);display:grid;place-items:center;flex:none}
+.alert-head h3{margin:2px 0 4px;font-size:19px;line-height:1.25}
+.alert-head p{margin:0;color:var(--muted);font-size:15px;font-weight:500}
+.who{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px;font-weight:600;color:var(--muted)}
+.faces{display:flex}
+.faces span{width:22px;height:22px;border-radius:50%;border:2px solid var(--surface);margin-left:-6px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff}
+.faces span:first-child{margin-left:0}
+
+.scrim{position:absolute;inset:0;background:rgba(8,12,12,.38);z-index:20}
+.rep{z-index:30}
+.rep h2{margin:0 0 14px;font-size:21px}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rt-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px 12px;border-radius:18px;background:var(--press);font-size:14px;font-weight:600;text-align:center;line-height:1.2;min-height:104px}
+.rt-tile .ic{width:46px;height:46px;border-radius:50%;background:var(--bad-soft);color:var(--bad);display:grid;place-items:center}
+.rt-tile.sent{background:var(--ok-soft)} .rt-tile.sent .ic{background:var(--ok);color:#fff}
+.photo{display:flex;flex-direction:column;gap:10px}
+.photo .shot{height:120px;border-radius:18px;border:2px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-weight:600}
+
+.toast{position:absolute;left:12px;right:12px;z-index:40;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:var(--fg);color:var(--bg);font-weight:600;font-size:15px;box-shadow:var(--shadow);top:60px}
+.toast .tick{width:26px;height:26px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;flex:none}
+@media (max-width:520px){.toast{top:max(14px,env(safe-area-inset-top,0px))}}
+
+/* ---------- pages ---------- */
+.page{position:absolute;inset:0;overflow-y:auto;padding:66px 20px 28px;display:flex;flex-direction:column;gap:20px}
+@media (max-width:520px){.page{padding-top:max(24px,env(safe-area-inset-top,0px))}}
+.page h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.02em}
+.impact{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;padding:20px;border-radius:24px;background:var(--accent);color:var(--on-accent)}
+.impact .n{font-size:72px;font-weight:800;line-height:.85;letter-spacing:-.04em}
+.impact .t{font-size:19px;font-weight:700;line-height:1.25}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border-radius:18px;padding:14px 12px}
+.stat b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:13px;font-weight:600}
+.feed{list-style:none;margin:0;padding:0;background:var(--surface);border-radius:22px;overflow:hidden}
+.feed li{display:grid;grid-template-columns:40px 1fr auto;gap:2px 12px;align-items:center;padding:13px 14px}
+.feed li+li{border-top:1px solid var(--line)}
+.feed .fi{grid-row:1/3;width:40px;height:40px;border-radius:12px;display:grid;place-items:center}
+.feed .w{font-weight:700;font-size:15px}
+.feed .p{color:var(--muted);font-size:14px;font-weight:500}
+.tag{grid-row:1/3;grid-column:3;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px}
+.tag.fixed{background:var(--ok-soft);color:var(--ok)} .tag.queue{background:var(--warn-soft);color:var(--warn)} .tag.new{background:var(--press);color:var(--muted)}
+.fi.fixed{background:var(--ok-soft);color:var(--ok)} .fi.queue{background:var(--warn-soft);color:var(--warn)} .fi.new{background:var(--press);color:var(--muted)}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 6px 12px;border-radius:18px;background:var(--surface);font-weight:700;font-size:15px;border:2px solid transparent}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-deep)}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:var(--accent)}
+.field{display:block;background:var(--surface);border-radius:20px;padding:16px 18px 10px}
+.field .hd{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.field output{font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.field input{width:100%;margin:10px 0 2px;accent-color:var(--accent);height:28px}
+.field .ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:600}
+
+/* ---------- tabs ---------- */
+.tabs{position:absolute;left:0;right:0;bottom:0;height:78px;padding:6px 18px 16px;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);z-index:8}
+.tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:700;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--accent)}
+@media (max-width:520px){.tabs{padding-bottom:max(10px,env(safe-area-inset-bottom,0px))}}
+
+@keyframes pulse{from{transform:scale(1);opacity:.45}to{transform:scale(3.2);opacity:0}}
+.pulse{animation:pulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes drop{from{transform:translateY(-14px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.new-pin{animation:drop .35s cubic-bezier(.2,1.4,.5,1)}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.sheet,.toast{animation:up .28s ease-out}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="stage"><div class="device">
+<i class="hw" style="top:176px;height:34px"></i><i class="hw" style="top:242px;height:62px"></i><i class="hw" style="top:318px;height:62px"></i><i class="hw r" style="top:262px;height:100px"></i>
+<div class="phone" id="app">
+  <div class="status" aria-hidden="true"><span class="num" id="clock">14:19</span><span class="island"></span>
+    <svg width="68" height="13" viewBox="0 0 68 13"><g fill="currentColor"><rect x="0" y="8" width="3" height="5" rx="1"/><rect x="5" y="5.5" width="3" height="7.5" rx="1"/><rect x="10" y="3" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="13" rx="1"/><path d="M31 3.5a9 9 0 0 1 12 0l-1.6 1.7a6.6 6.6 0 0 0-8.8 0zM33.6 6.4a5.3 5.3 0 0 1 6.8 0L37 10z"/><rect x="45" y=".5" width="20" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="47" y="2.5" width="14" height="8" rx="2"/><rect x="66" y="4.5" width="1.6" height="4" rx=".8" opacity=".45"/></g></svg>
+  </div>
+
+  <!-- ROUTE -->
+  <section class="screen" id="s-map">
+    <svg id="map" aria-label="Map of Soho, London">
+      <g id="world"></g>
+      <g id="pins"></g>
+    </svg>
+
+    <div class="top" id="plan-top">
+      <div class="card trip">
+        <div class="rail"><span class="o"></span><span class="dots"></span><span class="d"></span></div>
+        <div class="place">Tottenham Court Road</div>
+        <div class="place">Liberty, Great Marlborough St</div>
+        <button class="swap" aria-label="Swap start and destination"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v14M2.5 6.5 6 3l3.5 3.5M14 17V3M10.5 13.5 14 17l3.5-3.5"/></svg></button>
+      </div>
+      <div class="chips">
+        <button class="chip" id="sense" aria-pressed="true"><span class="led"></span>Sensing kerbs <span class="sub num" id="kerbs">14</span></button>
+        <span class="chip"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="1.5" width="11" height="13" rx="2"/><path d="M8 1.5v13M4.8 6 6 4.6 7.2 6M8.8 10l1.2 1.4 1.2-1.4"/></svg>Lift working <span class="sub">2 min ago</span></span>
+      </div>
+    </div>
+
+    <div class="top" id="nav-top" hidden>
+      <div class="navcard">
+        <div class="turn"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><g id="turn-ic"></g></svg></div>
+        <div><div class="dist num" id="nav-dist">120 m</div><div class="street" id="nav-street">Oxford Street</div></div>
+      </div>
+      <div class="navcard next" id="nav-next"><svg width="16" height="16" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><g id="next-ic"></g></svg><span id="next-txt">Then left onto Poland Street</span></div>
+    </div>
+
+    <button class="locate" id="locate" aria-label="Show whole route"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><circle cx="11" cy="11" r="2" fill="currentColor"/><path d="M11 1.5v3M11 17.5v3M1.5 11h3M17.5 11h3"/></svg></button>
+    <button class="fab" id="fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3 22 20H2z"/><path d="M12 10v4.5M12 17.6v.1"/></svg>Report</button>
+
+    <div class="sheet" id="plan-sheet">
+      <div class="grab"></div>
+      <div class="routes" id="routes"></div>
+      <button class="primary" id="go"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5 17.5 18 10 14 2.5 18z"/></svg>Start</button>
+    </div>
+
+    <div class="sheet" id="nav-sheet" hidden>
+      <div class="navbar">
+        <div><div class="eta num" id="eta">12 min</div><div class="eta-sub num" id="eta-sub">14:31 · 780 m</div></div>
+        <button class="end" id="end">End</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="alert" hidden>
+      <div class="grab"></div>
+      <div class="alert-head">
+        <div class="alert-ic"><svg width="26" height="26" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 21h22M6 21v-8h16v8M9 13V9h10v4"/></svg></div>
+        <div>
+          <h3>Pavement blocked on Poland Street</h3>
+          <p>Van parked across the dropped kerb</p>
+          <div class="who"><span class="faces"><span style="background:#6b7fd7">AK</span><span style="background:#d27a4f">SJ</span></span>2 reports · 4 min ago</div>
+        </div>
+      </div>
+      <div class="row2">
+        <button class="secondary" id="keep">Keep route</button>
+        <button class="primary" id="reroute">Avoid · <span class="num" id="reroute-cost">+1 min</span></button>
+      </div>
+    </div>
+
+    <div class="sheet" id="done-sheet" hidden>
+      <div class="grab"></div>
+      <div class="alert-head">
+        <div class="alert-ic" style="background:var(--ok-soft);color:var(--ok)"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 13.5 4.5 4.5L20 8"/></svg></div>
+        <div><h3>Liberty</h3><p class="num" id="done-text"></p></div>
+      </div>
+      <button class="primary" id="again">Done</button>
+    </div>
+  </section>
+
+  <!-- FIXED -->
+  <section class="screen" id="s-impact" hidden>
+    <div class="page">
+      <h1>Your streets</h1>
+      <div class="impact"><span class="n num">3</span><span class="t">kerbs fixed after your reports</span></div>
+      <div class="stats">
+        <div class="stat"><b class="num">46 km</b><span>logged</span></div>
+        <div class="stat"><b class="num" id="rep-count">12</b><span>reports</span></div>
+        <div class="stat"><b class="num">214</b><span>people helped</span></div>
+      </div>
+      <ul class="feed" id="feed"></ul>
+    </div>
+  </section>
+
+  <!-- CHAIR -->
+  <section class="screen" id="s-profile" hidden>
+    <div class="page">
+      <h1>My chair</h1>
+      <div class="seg" id="chair">
+        <button aria-pressed="true" data-v="manual"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M16 10v9h8l3.5 7M16 14h6"/><circle cx="14" cy="23" r="7.5"/></svg>Manual</button>
+        <button aria-pressed="false" data-v="powered"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M14 10v9h9l3 5M14 14h6M26 12v6"/><rect x="9" y="19" width="11" height="5" rx="1.5"/><circle cx="11" cy="27" r="3.5"/><circle cx="25" cy="27" r="3.5"/></svg>Powered</button>
+        <button aria-pressed="false" data-v="scooter"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6h4l-3 16M6 22h20M10 22l2-8h7"/><circle cx="9" cy="26" r="3.5"/><circle cx="25" cy="26" r="3.5"/></svg>Scooter</button>
+      </div>
+      <label class="field" for="kerb"><span class="hd">Highest kerb<output id="kerb-o" class="num">3 cm</output></span>
+        <input type="range" id="kerb" min="0" max="10" step="0.5" value="3"><span class="ends"><span>0</span><span>10 cm</span></span></label>
+      <label class="field" for="slope"><span class="hd">Steepest slope<output id="slope-o" class="num">8%</output></span>
+        <input type="range" id="slope" min="2" max="12" step="1" value="8"><span class="ends"><span>2%</span><span>12%</span></span></label>
+      <label class="field" for="range"><span class="hd">Range per trip<output id="range-o" class="num">6 km</output></span>
+        <input type="range" id="range" min="1" max="25" step="1" value="6"><span class="ends"><span>1</span><span>25 km</span></span></label>
+    </div>
+  </section>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="sheet rep" id="report" hidden>
+    <div class="grab"></div>
+    <h2 id="rep-title">What's in the way?</h2>
+    <div class="rgrid" id="rgrid"></div>
+    <div class="photo" id="photo-step" hidden>
+      <label class="shot" for="plate">Add a photo of the plate</label>
+      <input type="file" id="plate" accept="image/*" capture="environment" hidden>
+      <button class="primary" id="skip-photo">Send</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden role="status"><span class="tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7.5 2.5 2.5L11 4.5"/></svg></span><span id="toast-t"></span></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-s="map"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 6l6.5-3 7 3L22 3v15l-6.5 3-7-3L2 21z M8.5 3v15M15.5 6v15"/></svg>Route</button>
+    <button role="tab" aria-selected="false" data-s="impact"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21s-7.5-4.6-7.5-11A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 6.4-7.5 11-7.5 11z"/></svg>Streets</button>
+    <button role="tab" aria-selected="false" data-s="profile"><svg width="24" height="24" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M16 10v9h8l3.5 7M16 14h6"/><circle cx="14" cy="23" r="7.5"/></svg>Chair</button>
+  </nav>
+  <i class="home"></i>
+</div>
+</div></div>
+
+<script>
+const MAP=/*MAPDATA*/;
+const $=id=>document.getElementById(id);
+const show=(id,on)=>$(id).toggleAttribute('hidden',!on);
+const NS='http://www.w3.org/2000/svg';
+const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEED=65; // metres per minute, typical manual wheelchair pace
+const NOW=14*60+19;
+let SC=1;
+function fitDevice(){
+  const m=matchMedia('(max-width:520px)').matches;
+  SC=m?1:Math.min(1.3,(innerWidth-32)/421,(innerHeight-40)/880);
+  document.documentElement.style.setProperty('--s',SC);
+}
+fitDevice();addEventListener('resize',fitDevice);
+
+/* ---------- world ---------- */
+const world=$('world'), pins=$('pins');
+const svg=$('map');
+let cam={x:600,y:350,k:.5}, camTo=null, camAnim=null;
+
+el('path',{d:MAP.park,class:'m-park'},world);
+el('path',{d:MAP.bld,class:'m-bld'},world);
+el('path',{d:MAP.roads.foot||'',class:'m-r m-foot'},world);
+el('path',{d:MAP.roads.service||'',class:'m-r m-svc'},world);
+el('path',{d:MAP.roads.minor,class:'m-r m-minor-c'},world);
+el('path',{d:MAP.roads.major,class:'m-r m-major-c'},world);
+el('path',{d:MAP.roads.minor,class:'m-r m-minor'},world);
+el('path',{d:MAP.roads.major,class:'m-r m-major'},world);
+const lblG=el('g',{},world);
+const short=n=>n.replace(/ Street$/,' St').replace(/ Road$/,' Rd').replace(/ Place$/,' Pl').replace(/ Square$/,' Sq');
+const labels=MAP.labels.map(([n,x,y,a,maj])=>{const t=el('text',{class:'m-lbl'+(maj?' maj':''),x,y,transform:`rotate(${a} ${x} ${y})`},lblG);t.textContent=short(n);return t});
+const routeG=el('g',{},world);
+const altC=el('path',{class:'rt rt-alt-c'},routeG), altF=el('path',{class:'rt rt-alt'},routeG), altHit=el('path',{class:'rt rt-hit'},routeG);
+const mainC=el('path',{class:'rt rt-c'},routeG), mainF=el('path',{class:'rt rt-f'},routeG);
+
+const R=MAP.routes;
+const d=pts=>'M'+pts.map(p=>p[0]+' '+p[1]).join('L');
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const plen=p=>p.reduce((s,q,i)=>i?s+dist(p[i-1],q):0,0);
+
+/* ---------- pins (drawn in screen pixels) ---------- */
+const PINS=[];
+function pin(x,y,html,cls){const g=el('g',{},pins);g.innerHTML=html;if(cls)g.firstElementChild.setAttribute('class',cls);PINS.push({g,x,y});place(PINS[PINS.length-1]);return PINS[PINS.length-1]}
+const ICON={
+  block:'<path d="M3 21h22M6 21v-8h16v8M9 13V9h10v4"/>',
+  kerb:'<path d="M3 20h8v-7h14"/><path d="M5 5l18 18"/>',
+  lift:'<rect x="6" y="3" width="16" height="22" rx="2"/><path d="M14 3v22M9.5 9 11 7l1.5 2M15.5 19l1.5 2 1.5-2"/>',
+  car:'<path d="M4 18v-5l3-6h14l3 6v5z"/><circle cx="9" cy="19" r="2.2" fill="currentColor"/><circle cx="19" cy="19" r="2.2" fill="currentColor"/>',
+  rough:'<path d="M2 18l4-5 3 3 4-7 3 5 4-5 6 9"/>',
+  slope:'<path d="M3 22h22V7z"/>'
+};
+const hazPin=(x,y,type,color,isNew)=>pin(x,y,`<g${isNew?' class="new-pin"':''}><circle r="15" fill="${color}" stroke="var(--surface)" stroke-width="3"/><g transform="translate(-9 -9) scale(.64)" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ICON[type]}</g></g>`);
+const S=R.a[0], T=R.a[R.a.length-1];
+pin(S[0],S[1],`<g><circle r="13" fill="var(--surface)" stroke="var(--accent)" stroke-width="4"/><circle r="4.5" fill="var(--accent)"/></g>`);
+pin(T[0],T[1],`<g><path d="M0 0c-3-5-14-14-14-24a14 14 0 0 1 28 0c0 10-11 19-14 24z" fill="var(--fg)" stroke="var(--surface)" stroke-width="2.5"/><rect x="-5" y="-29" width="10" height="10" rx="2" fill="var(--surface)"/></g>`);
+hazPin(...MAP.hz.kerb,'kerb','var(--warn)');
+hazPin(...MAP.hz.car,'car','var(--bad)');
+const lbx=n=>{const l=MAP.labels.find(l=>l[0]===n);return l?[l[1],l[2]]:null};
+[['Berwick Street','rough','var(--warn)']].forEach(([n,t,c])=>{const p=lbx(n);if(p)hazPin(p[0],p[1],t,c)});
+const me=pin(S[0],S[1],`<g><circle r="10" fill="var(--fg)" class="pulse"/><circle r="17" fill="var(--surface)" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))"/><path d="M0 -11 9 9 0 4 -9 9z" fill="var(--fg)" stroke="var(--fg)" stroke-width="2" stroke-linejoin="round"/></g>`);
+me.g.style.display='none';
+let blockPin=null;
+
+/* ---------- camera ---------- */
+function size(){const r=svg.getBoundingClientRect();return [(r.width||392*SC)/SC,(r.height||700*SC)/SC]}
+function place(p){const [W,H]=size();p.g.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${1/cam.k}) rotate(${p.rot||0})`)}
+function apply(){
+  const [W,H]=size();
+  svg.setAttribute('viewBox',`${cam.x-W/2/cam.k} ${cam.y-H/2/cam.k} ${W/cam.k} ${H/cam.k}`);
+  const fs=13/cam.k, sw=3/cam.k;
+  lblG.style.fontSize=fs+'px';
+  labels.forEach(t=>{t.style.fontSize=(t.classList.contains('maj')?14:13)/cam.k+'px';t.style.strokeWidth=sw+'px'});
+  lblG.style.display=cam.k<.38?'none':'';
+  lblG.classList.toggle('few',cam.k<.6);
+  PINS.forEach(place);
+}
+function goCam(target,ms=600){
+  if(reduce||!ms){cam=target;apply();return}
+  const from={...cam},t0=performance.now();clearTimeout(camAnim);
+  const tick=()=>{const t=Math.min(1,(performance.now()-t0)/ms),e=1-Math.pow(1-t,3);
+    cam={x:from.x+(target.x-from.x)*e,y:from.y+(target.y-from.y)*e,k:from.k*Math.pow(target.k/from.k,e)};apply();
+    if(t<1)camAnim=setTimeout(tick,16)};tick();
+}
+function visible(){ // free area between floating top and visible bottom sheet, in svg pixels
+  const scr=$('s-map').getBoundingClientRect();
+  const top=[...document.querySelectorAll('#s-map .top')].find(e=>!e.hidden);
+  const sh=[...document.querySelectorAll('#s-map > .sheet')].find(e=>!e.hidden);
+  const t=top?top.getBoundingClientRect().bottom-scr.top:0, b=sh?sh.getBoundingClientRect().top-scr.top:scr.height;
+  return {t:t/SC,b:b/SC,h:scr.height/SC,w:scr.width/SC,shH:(scr.height-b)/SC};
+}
+function fit(pts,pad=36,ms){
+  const v=visible(),[W,H]=size();
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const aw=W-pad*2, ah=(v.b-v.t)-pad*2;
+  const k=Math.min(aw/(x1-x0||1),ah/(y1-y0||1),1.4);
+  const cy=(y0+y1)/2 - ((v.t+v.b)/2 - H/2)/k;
+  goCam({x:(x0+x1)/2,y:cy,k},ms);
+}
+function follow(p,ms=0){const v=visible(),[W,H]=size();const k=1.25;const sy=v.t+(v.b-v.t)*0.62;goCam({x:p[0],y:p[1]-(sy-H/2)/k,k},ms)}
+function chrome(){const v=visible();$('fab').style.bottom=(v.shH+14)+'px';$('locate').style.bottom=(v.shH+14)+'px'}
+
+/* ---------- routes & steps ---------- */
+const state={sel:'a',kerb:3,slope:8,range:6,nav:false,rerouted:false,reports:0,sensing:true};
+function options(){
+  const ok=state.kerb>=5;
+  return [
+    {id:'a',len:plen(R.a),via:'Oxford St · Poland St',p:94,ev:['ok','Checked by 8 people this hour']},
+    {id:'b',len:plen(R.b),via:'Hollen St · Noel St',p:ok?76:38,ev:ok?['warn','5 cm kerb, Great Chapel St']:['bad',`5 cm kerb, Great Chapel St · your max ${fmt(state.kerb)} cm`]}
+  ];
+}
+const fmt=n=>String(+n);
+const mins=m=>Math.max(1,Math.round(m/SPEED));
+const clock=m=>{const t=NOW+m;return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`};
+const EVI={ok:'<path d="m3 8.5 3 3L13 4.5"/>',warn:'<path d="M8 2 15 14H1z"/><path d="M8 7v3"/>',bad:'<path d="M8 2 15 14H1z"/><path d="M8 7v3"/>'};
+function renderRoutes(){
+  const box=$('routes');box.innerHTML='';
+  for(const o of options()){
+    const b=document.createElement('button');b.className='ro';b.setAttribute('aria-pressed',state.sel===o.id);
+    const c=o.p>=85?'var(--ok)':o.p>=60?'var(--warn)':'var(--bad)';
+    b.innerHTML=`<span class="time num">${mins(o.len)} min<small>${Math.round(o.len/10)*10} m</small></span>
+      <span class="score" style="--p:${o.p};--c:${c}"><b class="num">${o.p}</b><i>%</i></span>
+      <span class="via">${o.via}</span>
+      <span class="ev ${o.ev[0]}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${EVI[o.ev[0]]}</svg>${o.ev[1]}</span>`;
+    b.onclick=()=>{state.sel=o.id;renderRoutes();drawRoutes()};
+    box.appendChild(b);
+  }
+}
+let path=R.a;
+function drawRoutes(){
+  const main=state.nav?path:R[state.sel], alt=state.sel==='a'?R.b:R.a;
+  mainC.setAttribute('d',d(main));mainF.setAttribute('d',d(main));
+  [altC,altF,altHit].forEach(p=>{p.setAttribute('d',d(alt));p.style.display=state.nav?'none':''});
+}
+altHit.onclick=()=>{state.sel=state.sel==='a'?'b':'a';renderRoutes();drawRoutes()};
+
+function buildSteps(pts){ // split into straight-ish legs, turn = left/right by cross product
+  const legs=[];let cum=0;
+  const MERGE=12;
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1],b=pts[i],L=dist(a,b);cum+=L;
+    const h=Math.atan2(b[1]-a[1],b[0]-a[0]);
+    const last=legs[legs.length-1];
+    if(last){let dh=h-last.h;while(dh>Math.PI)dh-=2*Math.PI;while(dh<-Math.PI)dh+=2*Math.PI;
+      if(Math.abs(dh)<0.6||L<MERGE){last.end=cum;continue}
+      legs.push({h,end:cum,turn:dh>0?'right':'left'});
+    } else legs.push({h,end:cum,turn:'start'});
+  }
+  return legs;
+}
+function streetAt(key,pos){const st=MAP.steps[key];let c=0;for(const [n,l] of st){c+=l;if(pos<=c+1)return n}return st[st.length-1][0]}
+const TURN={start:'<path d="M17 28V6M8 15l9-9 9 9"/>',left:'<path d="M24 29V15a4 4 0 0 0-4-4H7M13 5l-6 6 6 6"/>',right:'<path d="M10 29V15a4 4 0 0 1 4-4h13M21 5l6 6-6 6"/>',arrive:'<path d="M17 30c-2-4-9-9-9-16a9 9 0 0 1 18 0c0 7-7 12-9 16z"/><circle cx="17" cy="14" r="3"/>'};
+
+/* ---------- navigation ---------- */
+let s=0,timer=null,alerted=false,legs=[],off=0,key='a',total=0;
+function at(pts,pos){for(let i=1;i<pts.length;i++){const L=dist(pts[i-1],pts[i]);if(pos<=L&&L>0){const t=pos/L;const r=[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];r.h=Math.atan2(pts[i][1]-pts[i-1][1],pts[i][0]-pts[i-1][0])*180/Math.PI+90;return r}pos-=L}const l=pts[pts.length-1].slice();l.h=0;return l}
+function start(){
+  state.nav=true;state.rerouted=false;alerted=false;s=0;key=state.sel;path=R[key];legs=buildSteps(path);total=plen(path);off=0;
+  show('plan-top',0);show('plan-sheet',0);show('nav-top',1);show('nav-sheet',1);me.g.style.display='';
+  drawRoutes();chrome();follow(path[0],700);setTimeout(tick,reduce?0:750);
+}
+function updateNav(){
+  const i=legs.findIndex(l=>l.end>=s);const leg=legs[Math.max(0,i)],nxt=legs[i+1];
+  const toTurn=Math.max(0,leg.end-s);
+  $('turn-ic').innerHTML=TURN[nxt?nxt.turn:'arrive'];
+  $('nav-dist').textContent=(toTurn>=100?Math.round(toTurn/10)*10:Math.max(5,Math.round(toTurn/5)*5))+' m';
+  const streetKey=state.rerouted?'re':key;
+  if(nxt){$('nav-street').textContent=(nxt.turn==='left'?'Left':'Right')+' onto '+streetAt(streetKey,leg.end-off+20);
+    const n2=legs[i+2];show('nav-next',!!n2);if(n2){$('next-ic').innerHTML=TURN[n2.turn];$('next-txt').textContent='Then '+n2.turn+' onto '+streetAt(streetKey,nxt.end-off+20)}}
+  else{$('nav-street').textContent='Liberty on your left';show('nav-next',0)}
+  const rem=total-s;$('eta').textContent=mins(rem)+' min';$('eta-sub').textContent=`${clock(mins(rem))} · ${Math.round(rem/10)*10} m`;
+}
+function tick(){
+  if(!state.nav)return;
+  s=Math.min(total,s+(reduce?60:3.2));
+  const p=at(path,s);me.x=p[0];me.y=p[1];me.rot=p.h;place(me);follow(p,0);updateNav();
+  if(!alerted&&key==='a'&&s>190){alerted=true;return showAlert()}
+  if(s>=total)return arrive();
+  timer=setTimeout(tick,reduce?600:40);
+}
+function showAlert(){
+  const b=MAP.hz.block;blockPin=hazPin(b[0],b[1],'block','var(--bad)',true);
+  show('nav-sheet',0);show('alert',1);chrome();
+  fit([at(path,s),b,R.re[0],T],50,700);
+}
+function resume(avoid){
+  show('alert',0);show('nav-sheet',1);chrome();
+  if(avoid){
+    // keep what has been travelled, then go straight on to Wardour St and follow the new route
+    const done=[];let c=0;for(let i=0;i<path.length;i++){if(i&&c+dist(path[i-1],path[i])>s)break;if(i)c+=dist(path[i-1],path[i]);done.push(path[i])}
+    done.push(at(path,s));
+    path=done.concat([R.ward],R.re.slice(1));
+    state.rerouted=true;off=plen(done)+dist(done[done.length-1],R.ward);legs=buildSteps(path);total=plen(path);drawRoutes();
+    toast('Avoiding Poland Street');
+  }
+  tick();
+}
+function arrive(){
+  state.nav=false;clearTimeout(timer);
+  show('nav-top',0);show('nav-sheet',0);show('done-sheet',1);chrome();
+  const r=state.reports;
+  $('done-text').textContent=`${Math.round(total/10)*10} m logged · ${state.rerouted?9:7} kerbs measured`+(r?` · ${r} report${r>1?'s':''} sent`:'');
+  fit(path,40,700);
+}
+function reset(){
+  clearTimeout(timer);state.nav=false;state.rerouted=false;path=R[state.sel];
+  if(blockPin){blockPin.g.remove();PINS.splice(PINS.indexOf(blockPin),1);blockPin=null}
+  ['nav-top','nav-sheet','alert','done-sheet'].forEach(i=>show(i,0));me.g.style.display='none';
+  show('plan-top',1);show('plan-sheet',1);drawRoutes();chrome();fit(R.a.concat(R.b),36,600);
+}
+$('go').onclick=start;$('end').onclick=reset;$('again').onclick=reset;
+$('keep').onclick=()=>resume(false);$('reroute').onclick=()=>resume(true);
+$('locate').onclick=()=>fit(state.nav?path:R.a.concat(R.b),36,500);
+
+/* ---------- report ---------- */
+const TYPES=[['block','Blocked pavement'],['kerb','No dropped kerb'],['car','Car on pavement'],['lift','Lift out'],['rough','Rough surface'],['slope','Too steep']];
+let pending=null;
+function openReport(){
+  $('rep-title').textContent="What's in the way?";show('rgrid',1);show('photo-step',0);
+  $('rgrid').innerHTML='';
+  for(const [k,label] of TYPES){
+    const b=document.createElement('button');b.className='rt-tile';
+    b.innerHTML=`<span class="ic"><svg width="24" height="24" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg></span>${label}`;
+    b.onclick=()=>{if(k==='car'){pending=[k,label];$('rep-title').textContent='Car on pavement';show('rgrid',0);show('photo-step',1);return}b.classList.add('sent');send(k,label)};
+    $('rgrid').appendChild(b);
+  }
+  show('scrim',1);show('report',1);
+}
+function closeReport(){show('scrim',0);show('report',0)}
+function send(k,label,photo){
+  state.reports++;
+  const p=state.nav?[me.x,me.y]:[cam.x,cam.y];
+  const col=k==='kerb'||k==='rough'||k==='slope'?'var(--warn)':'var(--bad)';
+  hazPin(p[0]+14,p[1]-14,k,col,true);
+  addFeed(label,'Just now'+(photo?' · photo':''),'new','Sent',k,true);
+  $('rep-count').textContent=12+state.reports;
+  setTimeout(closeReport,300);toast('Sent to Westminster Council');
+}
+$('plate').onchange=()=>pending&&send(...pending,true);
+$('skip-photo').onclick=()=>pending&&send(...pending,false);
+$('fab').onclick=openReport;$('scrim').onclick=closeReport;
+let tt;function toast(t){$('toast-t').textContent=t;show('toast',1);clearTimeout(tt);tt=setTimeout(()=>show('toast',0),2400)}
+
+/* ---------- streets feed ---------- */
+function addFeed(w,p,cls,tag,icon,top){
+  const li=document.createElement('li');
+  li.innerHTML=`<span class="fi ${cls}"><svg width="20" height="20" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ICON[icon]}</svg></span><span class="w">${w}</span><span class="tag ${cls}">${tag}</span><span class="p">${p}</span>`;
+  top?$('feed').prepend(li):$('feed').appendChild(li);
+}
+[['Dropped kerb added','Berwick St × Peter St · 2 Nov','fixed','Fixed','kerb'],
+ ['Dropped kerb added','Wardour St · 21 Oct','fixed','Fixed','kerb'],
+ ['Dropped kerb added','Old Compton St · 9 Oct','fixed','Fixed','kerb'],
+ ['Pavement parking','Dean St · 38 people affected','queue','With council','car'],
+ ['Broken paving','Poland St · 11 confirmed','new','Sent','rough']].forEach(r=>addFeed(...r));
+
+/* ---------- sensing ---------- */
+$('sense').onclick=()=>{state.sensing=!state.sensing;$('sense').setAttribute('aria-pressed',state.sensing)};
+setInterval(()=>{if(state.sensing&&state.nav){const k=$('kerbs');k.textContent=+k.textContent+1}},2500);
+
+/* ---------- chair ---------- */
+const FIELDS=[['kerb',' cm'],['slope','%'],['range',' km']];
+for(const [id,u] of FIELDS)$(id).oninput=e=>{state[id]=+e.target.value;$(id+'-o').textContent=fmt(e.target.value)+u;renderRoutes()};
+$('chair').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  [...$('chair').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const pre={manual:[3,8,6],powered:[5,10,20],scooter:[2,6,25]}[b.dataset.v];
+  FIELDS.forEach(([id,u],i)=>{$(id).value=pre[i];state[id]=pre[i];$(id+'-o').textContent=pre[i]+u});renderRoutes()};
+
+/* ---------- tabs ---------- */
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  ['map','impact','profile'].forEach(k=>show('s-'+k,k===b.dataset.s));
+  if(b.dataset.s==='map'){apply();chrome()}
+};
+
+renderRoutes();drawRoutes();chrome();fit(R.a.concat(R.b),36,0);
+new ResizeObserver(()=>{chrome();state.nav?apply():fit(R.a.concat(R.b),36,0)}).observe($('app'));
+</script>
