@@ -209,6 +209,41 @@ button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid v
 @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 .sheet,.toast{animation:up .28s ease-out}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- spec additions ---------- */
+.chip{min-height:44px}
+.rt-steep{stroke:var(--warn);stroke-width:9}
+.rt-unk{stroke:var(--surface);stroke-width:4.5;stroke-dasharray:0 10}
+.pin{cursor:pointer;outline:none}
+.pin:focus-visible .dot{stroke:var(--accent);stroke-width:5}
+.facts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.fact{display:inline-flex;align-items:center;gap:4px;padding:4px 9px 4px 7px;border-radius:999px;background:var(--press);font-size:13px;font-weight:600}
+.ro[aria-pressed="true"] .fact.n{background:var(--surface)}
+.fact.ok{background:var(--ok-soft);color:var(--ok)}
+.fact.warn{background:var(--warn-soft);color:var(--warn)}
+.fact.bad{background:var(--bad-soft);color:var(--bad)}
+.fact.unk{background:none;border:1.5px dashed var(--muted);color:var(--muted);padding:2.5px 7.5px 2.5px 5.5px}
+.navcard .voice{margin-left:auto;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--bg) 14%,transparent)}
+.navcard .voice[aria-pressed="false"]{opacity:.6}
+.navcard .cue{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:14px;font-weight:700;color:var(--accent-soft)}
+.x{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);background:var(--press)}
+#detail .alert-head{padding-right:50px}
+#detail .secondary{height:54px}
+.seg{grid-template-columns:repeat(2,1fr)}
+.page h2{margin:4px 0 -10px;font-size:20px;font-weight:800}
+.page>*{flex-shrink:0}
+.page{scrollbar-width:none}.page::-webkit-scrollbar{display:none}
+.rep{padding-bottom:30px}
+.toggles{background:var(--surface);border-radius:20px;overflow:hidden}
+.tog{display:flex;align-items:center;gap:12px;min-height:58px;padding:0 16px;font-weight:600}
+.tog+.tog{border-top:1px solid var(--line)}
+.tog svg{color:var(--muted);flex:none}
+.tog span{flex:1}
+.tog input{appearance:none;-webkit-appearance:none;margin:0;width:52px;height:32px;border-radius:16px;background:var(--line);position:relative;flex:none;cursor:pointer;transition:background .2s}
+.tog input::before{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.tog input:checked{background:var(--accent)}
+.tog input:checked::before{transform:translateX(20px)}
+.tog input:disabled{opacity:.5;cursor:not-allowed}
 </style>
 
 <div class="stage"><div class="device">
@@ -234,14 +269,15 @@ button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid v
       </div>
       <div class="chips">
         <button class="chip" id="sense" aria-pressed="true"><span class="led"></span>Sensing kerbs <span class="sub num" id="kerbs">14</span></button>
-        <span class="chip"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="1.5" width="11" height="13" rx="2"/><path d="M8 1.5v13M4.8 6 6 4.6 7.2 6M8.8 10l1.2 1.4 1.2-1.4"/></svg>Lift working <span class="sub">2 min ago</span></span>
+        <button class="chip" id="liftchip"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="2"/><path d="M8 1.5v13M4.8 6 6 4.6 7.2 6M8.8 10l1.2 1.4 1.2-1.4"/></svg>Lift working <span class="sub">2 min ago</span></button>
       </div>
     </div>
 
     <div class="top" id="nav-top" hidden>
       <div class="navcard">
         <div class="turn"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><g id="turn-ic"></g></svg></div>
-        <div><div class="dist num" id="nav-dist">120 m</div><div class="street" id="nav-street">Oxford Street</div></div>
+        <div><div class="dist num" id="nav-dist">120 m</div><div class="street" id="nav-street">Oxford Street</div><div class="cue" id="nav-cue" hidden></div></div>
+        <button class="voice" id="voice" aria-pressed="true" aria-label="Voice guidance"></button>
       </div>
       <div class="navcard next" id="nav-next"><svg width="16" height="16" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><g id="next-ic"></g></svg><span id="next-txt">Then left onto Poland Street</span></div>
     </div>
@@ -286,6 +322,17 @@ button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid v
       </div>
       <button class="primary" id="again">Done</button>
     </div>
+
+    <div class="sheet" id="detail" hidden>
+      <div class="grab"></div>
+      <button class="x" id="dt-x" aria-label="Close"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14"/></svg></button>
+      <div class="alert-head">
+        <div class="alert-ic" id="dt-ic"></div>
+        <div><h3 id="dt-t"></h3><p id="dt-s"></p><div class="who" id="dt-w"></div></div>
+      </div>
+      <div class="row2" id="dt-issue"><button class="secondary" id="dt-clear">Cleared</button><button class="primary" id="dt-still">Still there</button></div>
+      <button class="secondary" id="dt-close">Close</button>
+    </div>
   </section>
 
   <!-- FIXED -->
@@ -302,20 +349,29 @@ button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid v
     </div>
   </section>
 
-  <!-- CHAIR -->
+  <!-- PROFILE -->
   <section class="screen" id="s-profile" hidden>
     <div class="page">
-      <h1>My chair</h1>
-      <div class="seg" id="chair">
-        <button aria-pressed="true" data-v="manual"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M16 10v9h8l3.5 7M16 14h6"/><circle cx="14" cy="23" r="7.5"/></svg>Manual</button>
-        <button aria-pressed="false" data-v="powered"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M14 10v9h9l3 5M14 14h6M26 12v6"/><rect x="9" y="19" width="11" height="5" rx="1.5"/><circle cx="11" cy="27" r="3.5"/><circle cx="25" cy="27" r="3.5"/></svg>Powered</button>
-        <button aria-pressed="false" data-v="scooter"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6h4l-3 16M6 22h20M10 22l2-8h7"/><circle cx="9" cy="26" r="3.5"/><circle cx="25" cy="26" r="3.5"/></svg>Scooter</button>
+      <h1>Getting around</h1>
+      <div class="seg" id="mode">
+        <button aria-pressed="true" data-v="wheelchair"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="17" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M16 10v9h8l3.5 7M16 14h6"/><circle cx="14" cy="23" r="7.5"/></svg>Wheelchair</button>
+        <button aria-pressed="false" data-v="scooter"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 6h4l-3 16M6 22h20M10 22l2-8h7"/><circle cx="9" cy="26" r="3.5"/><circle cx="25" cy="26" r="3.5"/></svg>Scooter</button>
+        <button aria-pressed="false" data-v="walking"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M14.5 10 12 19l4 4v7M14.5 10l4 6 5 1.5M12 19l-3 11M25 16.5V30"/></svg>Walking aid</button>
+        <button aria-pressed="false" data-v="pushchair"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h3.5l3 8M11.5 16h17l-2.5 8h-12z"/><path d="M17 16V6a11 11 0 0 1 11 10"/><circle cx="14" cy="28" r="2.6"/><circle cx="25" cy="28" r="2.6"/></svg>Pushchair</button>
+      </div>
+      <h2>Avoid</h2>
+      <div class="toggles" id="avoid">
+        <label class="tog"><svg width="22" height="22" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 23h5v-5h5v-5h5V8h5"/></svg><span>Steps</span><input type="checkbox" data-k="steps"></label>
+        <label class="tog"><svg width="22" height="22" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22h22V7z"/></svg><span>Steep slopes</span><input type="checkbox" data-k="steep"></label>
+        <label class="tog"><svg width="22" height="22" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18l4-5 3 3 4-7 3 5 4-5 6 9"/></svg><span>Rough or gravel surfaces</span><input type="checkbox" data-k="rough"></label>
+        <label class="tog"><svg width="22" height="22" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4v20M23 4v20M9 14h5M11.5 11 14 14l-2.5 3M19 14h-5M16.5 11 14 14l2.5 3"/></svg><span>Narrow pavements</span><input type="checkbox" data-k="narrow"></label>
+        <label class="tog"><svg width="22" height="22" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15l22 6v3H3z"/><path d="M14 4v7M10.5 7.5 14 11l3.5-3.5"/></svg><span>Pavements that slope sideways</span><input type="checkbox" data-k="xslope"></label>
       </div>
       <label class="field" for="kerb"><span class="hd">Highest kerb<output id="kerb-o" class="num">3 cm</output></span>
         <input type="range" id="kerb" min="0" max="10" step="0.5" value="3"><span class="ends"><span>0</span><span>10 cm</span></span></label>
       <label class="field" for="slope"><span class="hd">Steepest slope<output id="slope-o" class="num">8%</output></span>
         <input type="range" id="slope" min="2" max="12" step="1" value="8"><span class="ends"><span>2%</span><span>12%</span></span></label>
-      <label class="field" for="range"><span class="hd">Range per trip<output id="range-o" class="num">6 km</output></span>
+      <label class="field" for="range"><span class="hd">Distance per trip<output id="range-o" class="num">6 km</output></span>
         <input type="range" id="range" min="1" max="25" step="1" value="6"><span class="ends"><span>1</span><span>25 km</span></span></label>
     </div>
   </section>
@@ -337,7 +393,7 @@ button:focus-visible,label:focus-visible,input:focus-visible{outline:3px solid v
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-s="map"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 6l6.5-3 7 3L22 3v15l-6.5 3-7-3L2 21z M8.5 3v15M15.5 6v15"/></svg>Route</button>
     <button role="tab" aria-selected="false" data-s="impact"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21s-7.5-4.6-7.5-11A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 6.4-7.5 11-7.5 11z"/></svg>Streets</button>
-    <button role="tab" aria-selected="false" data-s="profile"><svg width="24" height="24" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="5" r="2.6" fill="currentColor" stroke="none"/><path d="M16 10v9h8l3.5 7M16 14h6"/><circle cx="14" cy="23" r="7.5"/></svg>Chair</button>
+    <button role="tab" aria-selected="false" data-s="profile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>You</button>
   </nav>
   <i class="home"></i>
 </div>
@@ -350,7 +406,6 @@ const show=(id,on)=>$(id).toggleAttribute('hidden',!on);
 const NS='http://www.w3.org/2000/svg';
 const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const SPEED=65; // metres per minute, typical manual wheelchair pace
 const NOW=14*60+19;
 let SC=1;
 function fitDevice(){
@@ -360,10 +415,39 @@ function fitDevice(){
 }
 fitDevice();addEventListener('resize',fitDevice);
 
+/* ---------- profiles: kerb cm, slope %, range km, speed m/min (illustrative) ---------- */
+const PRESET={
+  wheelchair:{kerb:3,slope:8,range:6,speed:65,avoid:{steps:1,steep:1,rough:1,narrow:1,xslope:1},lock:['steps']},
+  scooter:{kerb:2,slope:6,range:25,speed:90,avoid:{steps:1,steep:1,rough:0,narrow:1,xslope:1},lock:['steps']},
+  walking:{kerb:10,slope:10,range:2,speed:48,avoid:{steps:0,steep:1,rough:1,narrow:0,xslope:1},lock:[]},
+  pushchair:{kerb:5,slope:10,range:5,speed:70,avoid:{steps:1,steep:0,rough:0,narrow:1,xslope:0},lock:[]}
+};
+const state={sel:'a',mode:'wheelchair',nav:false,rerouted:false,reports:0,sensing:true,kerb:3,slope:8,range:6,speed:65,avoid:{}};
+
+/* ---------- icons (28 x 28, stroked) ---------- */
+const ICON={
+  block:'<path d="M3 21h22M6 21v-8h16v8M9 13V9h10v4"/>',
+  works:'<path d="M11 4h6l5 18H6z"/><path d="M8.5 13h11M4 23h20"/>',
+  kerb:'<path d="M3 20h8v-7h14"/><path d="M5 5l18 18"/>',
+  car:'<path d="M4 18v-5l3-6h14l3 6v5z"/><circle cx="9" cy="19" r="2.2" fill="currentColor"/><circle cx="19" cy="19" r="2.2" fill="currentColor"/>',
+  lift:'<rect x="6" y="3" width="16" height="22" rx="2"/><path d="M14 3v22M9.5 9 11 7l1.5 2M15.5 19l1.5 2 1.5-2"/>',
+  rough:'<path d="M2 18l4-5 3 3 4-7 3 5 4-5 6 9"/>',
+  slope:'<path d="M3 22h22V7z"/>',
+  narrow:'<path d="M5 4v20M23 4v20M9 14h5M11.5 11 14 14l-2.5 3M19 14h-5M16.5 11 14 14l2.5 3"/>',
+  xslope:'<path d="M3 15l22 6v3H3z"/><path d="M14 4v7M10.5 7.5 14 11l3.5-3.5"/>',
+  dropk:'<path d="M3 19h6l6-6h10M3 23h22"/>',
+  nostep:'<path d="M4 23h5v-5h5v-5h5V8h5"/><path d="M5 5l18 18"/>',
+  unk:'<path d="M10 10.5a4 4 0 1 1 5.6 3.7c-1 .5-1.6 1.3-1.6 2.6v.7"/><path d="M14 21.6v.2"/>',
+  check:'<path d="m6 14.5 5 5L22 8.5"/>',
+  spk:'<path d="M4 11v6h4l6 5V6l-6 5z"/><path d="M18 10.5a4.5 4.5 0 0 1 0 7M21 7.5a9 9 0 0 1 0 13"/>',
+  spkoff:'<path d="M4 11v6h4l6 5V6l-6 5z"/><path d="M18 11l6 6M24 11l-6 6"/>'
+};
+const glyph=(k,s=24,w=2.4)=>`<svg width="${s}" height="${s}" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+
 /* ---------- world ---------- */
 const world=$('world'), pins=$('pins');
 const svg=$('map');
-let cam={x:600,y:350,k:.5}, camTo=null, camAnim=null;
+let cam={x:600,y:350,k:.5}, camAnim=null;
 
 el('path',{d:MAP.park,class:'m-park'},world);
 el('path',{d:MAP.bld,class:'m-bld'},world);
@@ -379,46 +463,71 @@ const labels=MAP.labels.map(([n,x,y,a,maj])=>{const t=el('text',{class:'m-lbl'+(
 const routeG=el('g',{},world);
 const altC=el('path',{class:'rt rt-alt-c'},routeG), altF=el('path',{class:'rt rt-alt'},routeG), altHit=el('path',{class:'rt rt-hit'},routeG);
 const mainC=el('path',{class:'rt rt-c'},routeG), mainF=el('path',{class:'rt rt-f'},routeG);
+const steepP=el('path',{class:'rt rt-steep'},routeG), unkP=el('path',{class:'rt rt-unk'},routeG);
 
 const R=MAP.routes;
 const d=pts=>'M'+pts.map(p=>p[0]+' '+p[1]).join('L');
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 const plen=p=>p.reduce((s,q,i)=>i?s+dist(p[i-1],q):0,0);
+function at(pts,pos){for(let i=1;i<pts.length;i++){const L=dist(pts[i-1],pts[i]);if(pos<=L&&L>0){const t=pos/L;const r=[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];r.h=Math.atan2(pts[i][1]-pts[i-1][1],pts[i][0]-pts[i-1][0])*180/Math.PI+90;return r}pos-=L}const l=pts[pts.length-1].slice();l.h=0;return l}
+function sub(pts,a,b){const out=[at(pts,a)];let c=0;for(let i=1;i<pts.length;i++){c+=dist(pts[i-1],pts[i]);if(c>a&&c<b)out.push(pts[i])}out.push(at(pts,b));return out.map(p=>[p[0],p[1]])}
+const K=Math.cos(51.5145*Math.PI/180)*111320;
+const proj=(la,lo)=>[(lo+0.1445)*K,(51.5185-la)*110540];
+const S=R.a[0], T=R.a[R.a.length-1];
+// illustrative survey data on route B: Hollen St not mapped yet, a short 5% ramp on Noel St
+const UNK=sub(R.b,326,386), STEEP=sub(R.b,400,448);
+const mid=p=>at(p,plen(p)/2);
 
 /* ---------- pins (drawn in screen pixels) ---------- */
 const PINS=[];
-function pin(x,y,html,cls){const g=el('g',{},pins);g.innerHTML=html;if(cls)g.firstElementChild.setAttribute('class',cls);PINS.push({g,x,y});place(PINS[PINS.length-1]);return PINS[PINS.length-1]}
-const ICON={
-  block:'<path d="M3 21h22M6 21v-8h16v8M9 13V9h10v4"/>',
-  kerb:'<path d="M3 20h8v-7h14"/><path d="M5 5l18 18"/>',
-  lift:'<rect x="6" y="3" width="16" height="22" rx="2"/><path d="M14 3v22M9.5 9 11 7l1.5 2M15.5 19l1.5 2 1.5-2"/>',
-  car:'<path d="M4 18v-5l3-6h14l3 6v5z"/><circle cx="9" cy="19" r="2.2" fill="currentColor"/><circle cx="19" cy="19" r="2.2" fill="currentColor"/>',
-  rough:'<path d="M2 18l4-5 3 3 4-7 3 5 4-5 6 9"/>',
-  slope:'<path d="M3 22h22V7z"/>'
-};
-const hazPin=(x,y,type,color,isNew)=>pin(x,y,`<g${isNew?' class="new-pin"':''}><circle r="15" fill="${color}" stroke="var(--surface)" stroke-width="3"/><g transform="translate(-9 -9) scale(.64)" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ICON[type]}</g></g>`);
-const S=R.a[0], T=R.a[R.a.length-1];
+const xG=el('g',{},pins), nearG=el('g',{},pins); // crossings and off-route places: street-level zoom only
+function place(p){p.g.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${1/cam.k}) rotate(${p.rot||0})`)}
+function pin(x,y,html,info,parent=pins){
+  const g=el('g',{},parent);g.innerHTML=html;const p={g,x,y,info};PINS.push(p);place(p);
+  if(info){g.setAttribute('class','pin');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.setAttribute('aria-label',`${info.t}. ${info.s}`);
+    g.onclick=()=>openDetail(p);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDetail(p)}}}
+  return p;
+}
+function unpin(p){if(!p)return;p.g.remove();const i=PINS.indexOf(p);if(i>=0)PINS.splice(i,1)}
+function hazPin(x,y,k,c,info,isNew,r=15,parent){
+  const h=r*.6;
+  return pin(x,y,`<g${isNew?' class="new-pin"':''}><circle r="24" fill="transparent"/><circle class="dot" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="3"/><g transform="translate(${-h} ${-h}) scale(${2*h/28})" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</g></g>`,info&&{...info,k,c},parent);
+}
 pin(S[0],S[1],`<g><circle r="13" fill="var(--surface)" stroke="var(--accent)" stroke-width="4"/><circle r="4.5" fill="var(--accent)"/></g>`);
 pin(T[0],T[1],`<g><path d="M0 0c-3-5-14-14-14-24a14 14 0 0 1 28 0c0 10-11 19-14 24z" fill="var(--fg)" stroke="var(--surface)" stroke-width="2.5"/><rect x="-5" y="-29" width="10" height="10" rx="2" fill="var(--surface)"/></g>`);
-hazPin(...MAP.hz.kerb,'kerb','var(--warn)');
-hazPin(...MAP.hz.car,'car','var(--bad)');
 const lbx=n=>{const l=MAP.labels.find(l=>l[0]===n);return l?[l[1],l[2]]:null};
-[['Berwick Street','rough','var(--warn)']].forEach(([n,t,c])=>{const p=lbx(n);if(p)hazPin(p[0],p[1],t,c)});
+const nudge=(p,dx,dy)=>p&&[p[0]+dx,p[1]+dy];
+// [where, icon, colour, title, detail, last confirmed, can be cleared]  (demo data)
+const PLACES=[
+  [MAP.hz.kerb,'kerb','var(--warn)','No dropped kerb','5 cm kerb, Great Chapel St','Measured by 3 people · 2 days ago',true],
+  [MAP.hz.car,'car','var(--bad)','Car on pavement','Dean St · 1.1 m left to pass','38 people affected · with council',true],
+  [lbx('Berwick Street'),'rough','var(--warn)','Rough surface','Broken paving, Berwick St','11 confirmed · 3 h ago',true],
+  [nudge(lbx("D'Arblay Street"),34,0),'works','var(--bad)','Roadworks','Pavement closed, D’Arblay St','Confirmed 1 h ago',true],
+  [nudge(lbx('Ramillies Street'),0,-10),'narrow','var(--warn)','Narrow pavement','75 cm at the narrowest, Ramillies St','Measured 5 days ago',true],
+  [nudge(lbx('Soho Square'),-20,-40),'xslope','var(--warn)','Pavement slopes sideways','4% cross-slope, Soho Square','Confirmed 2 days ago',true],
+  [mid(STEEP),'slope','var(--warn)','Steep section','5% for 50 m, Noel St','Measured 6 days ago',false],
+  [mid(UNK),'unk','#7d8a86','Not mapped yet','No kerb or surface data for 60 m of Hollen St','Filled in when someone passes with sensing on',false],
+  [proj(51.5168,-0.1299),'lift','var(--ok)','Tottenham Court Road','Step-free from street to train, by lift','Lift working · checked 2 min ago',false],
+  [proj(51.5152,-0.1418),'nostep','var(--bad)','Oxford Circus','No step-free access, stairs only','Nearest step-free station: Tottenham Court Road',false]
+];
+const P={};
+const NEAR=['car','rough','works','narrow','xslope'];
+PLACES.forEach(([p,k,c,t,s,w,issue])=>{if(p)P[k]=hazPin(p[0],p[1],k,c,{t,s,w,issue},false,15,NEAR.includes(k)?nearG:pins)});
 const me=pin(S[0],S[1],`<g><circle r="10" fill="var(--fg)" class="pulse"/><circle r="17" fill="var(--surface)" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))"/><path d="M0 -11 9 9 0 4 -9 9z" fill="var(--fg)" stroke="var(--fg)" stroke-width="2" stroke-linejoin="round"/></g>`);
 me.g.style.display='none';
 let blockPin=null;
+const VIEW=R.a.concat(R.b,[P.lift,P.nostep].filter(Boolean).map(p=>[p.x,p.y]));
 
 /* ---------- camera ---------- */
 function size(){const r=svg.getBoundingClientRect();return [(r.width||392*SC)/SC,(r.height||700*SC)/SC]}
-function place(p){const [W,H]=size();p.g.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${1/cam.k}) rotate(${p.rot||0})`)}
 function apply(){
   const [W,H]=size();
   svg.setAttribute('viewBox',`${cam.x-W/2/cam.k} ${cam.y-H/2/cam.k} ${W/cam.k} ${H/cam.k}`);
-  const fs=13/cam.k, sw=3/cam.k;
-  lblG.style.fontSize=fs+'px';
+  const sw=3/cam.k;
   labels.forEach(t=>{t.style.fontSize=(t.classList.contains('maj')?14:13)/cam.k+'px';t.style.strokeWidth=sw+'px'});
   lblG.style.display=cam.k<.38?'none':'';
   lblG.classList.toggle('few',cam.k<.6);
+  xG.style.display=nearG.style.display=cam.k<.7?'none':'';
   PINS.forEach(place);
 }
 function goCam(target,ms=600){
@@ -428,7 +537,7 @@ function goCam(target,ms=600){
     cam={x:from.x+(target.x-from.x)*e,y:from.y+(target.y-from.y)*e,k:from.k*Math.pow(target.k/from.k,e)};apply();
     if(t<1)camAnim=setTimeout(tick,16)};tick();
 }
-function visible(){ // free area between floating top and visible bottom sheet, in svg pixels
+function visible(){ // free area between floating top and visible bottom sheet, in unscaled px
   const scr=$('s-map').getBoundingClientRect();
   const top=[...document.querySelectorAll('#s-map .top')].find(e=>!e.hidden);
   const sh=[...document.querySelectorAll('#s-map > .sheet')].find(e=>!e.hidden);
@@ -439,7 +548,7 @@ function fit(pts,pad=36,ms){
   const v=visible(),[W,H]=size();
   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
   const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
-  const aw=W-pad*2, ah=(v.b-v.t)-pad*2;
+  const aw=Math.max(80,W-pad*2), ah=Math.max(60,(v.b-v.t)-pad*2);
   const k=Math.min(aw/(x1-x0||1),ah/(y1-y0||1),1.4);
   const cy=(y0+y1)/2 - ((v.t+v.b)/2 - H/2)/k;
   goCam({x:(x0+x1)/2,y:cy,k},ms);
@@ -448,18 +557,20 @@ function follow(p,ms=0){const v=visible(),[W,H]=size();const k=1.25;const sy=v.t
 function chrome(){const v=visible();$('fab').style.bottom=(v.shH+14)+'px';$('locate').style.bottom=(v.shH+14)+'px'}
 
 /* ---------- routes & steps ---------- */
-const state={sel:'a',kerb:3,slope:8,range:6,nav:false,rerouted:false,reports:0,sensing:true};
+const fmt=n=>String(+n);
+const mins=m=>Math.max(1,Math.round(m/state.speed));
+const clock=m=>{const t=NOW+m;return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`};
 function options(){
-  const ok=state.kerb>=5;
+  const steepBad=!!state.avoid.steep&&5>state.slope, kerbOk=state.kerb>=5;
   return [
-    {id:'a',len:plen(R.a),via:'Oxford St · Poland St',p:94,ev:['ok','Checked by 8 people this hour']},
-    {id:'b',len:plen(R.b),via:'Hollen St · Noel St',p:ok?76:38,ev:ok?['warn','5 cm kerb, Great Chapel St']:['bad',`5 cm kerb, Great Chapel St · your max ${fmt(state.kerb)} cm`]}
+    {id:'a',len:plen(R.a),via:'Oxford St · Poland St',p:94,
+     facts:[['slope','2%','n'],['dropk','Kerbs dropped','ok'],['check','Checked 4 min ago','ok']]},
+    {id:'b',len:plen(R.b),via:'Hollen St · Noel St',p:Math.max(12,90-(kerbOk?6:46)-(steepBad?24:0)-8),
+     facts:[['slope',steepBad?`5% · max ${state.slope}%`:'5%',steepBad?'bad':'n'],
+            ['kerb',kerbOk?'5 cm kerb':`5 cm kerb · max ${fmt(state.kerb)}`,kerbOk?'warn':'bad'],
+            ['unk','60 m unknown','unk']]}
   ];
 }
-const fmt=n=>String(+n);
-const mins=m=>Math.max(1,Math.round(m/SPEED));
-const clock=m=>{const t=NOW+m;return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`};
-const EVI={ok:'<path d="m3 8.5 3 3L13 4.5"/>',warn:'<path d="M8 2 15 14H1z"/><path d="M8 7v3"/>',bad:'<path d="M8 2 15 14H1z"/><path d="M8 7v3"/>'};
 function renderRoutes(){
   const box=$('routes');box.innerHTML='';
   for(const o of options()){
@@ -468,17 +579,30 @@ function renderRoutes(){
     b.innerHTML=`<span class="time num">${mins(o.len)} min<small>${Math.round(o.len/10)*10} m</small></span>
       <span class="score" style="--p:${o.p};--c:${c}"><b class="num">${o.p}</b><i>%</i></span>
       <span class="via">${o.via}</span>
-      <span class="ev ${o.ev[0]}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${EVI[o.ev[0]]}</svg>${o.ev[1]}</span>`;
+      <span class="facts">${o.facts.map(([k,t,cl])=>`<span class="fact ${cl}">${glyph(k,15,2.8)}${t}</span>`).join('')}</span>`;
     b.onclick=()=>{state.sel=o.id;renderRoutes();drawRoutes()};
     box.appendChild(b);
   }
 }
-let path=R.a;
+let path=R.a, key='a';
+function isCrossing(p){return ![S,T,MAP.hz.kerb].some(q=>dist(p,q)<35)}
+let xPins=[];
+function crossings(pts){
+  xPins.forEach(unpin);xPins=[];
+  const lg=buildSteps(pts);
+  for(let i=0;i<lg.length-1;i++){const p=at(pts,lg[i].end);if(!isCrossing(p))continue;
+    xPins.push(hazPin(p[0],p[1],'dropk','var(--ok)',{t:'Dropped kerbs both sides',s:'Crossing with tactile paving',w:'Confirmed 3 days ago',issue:false},false,11,xG))}
+}
 function drawRoutes(){
   const main=state.nav?path:R[state.sel], alt=state.sel==='a'?R.b:R.a;
   mainC.setAttribute('d',d(main));mainF.setAttribute('d',d(main));
   [altC,altF,altHit].forEach(p=>{p.setAttribute('d',d(alt));p.style.display=state.nav?'none':''});
+  const onB=!state.nav||key==='b';
+  unkP.style.display=onB&&!state.rerouted?'':'none';
+  steepP.style.display=onB||state.rerouted?'':'none';
+  crossings(main);
 }
+unkP.setAttribute('d',d(UNK));steepP.setAttribute('d',d(STEEP));
 altHit.onclick=()=>{state.sel=state.sel==='a'?'b':'a';renderRoutes();drawRoutes()};
 
 function buildSteps(pts){ // split into straight-ish legs, turn = left/right by cross product
@@ -498,36 +622,55 @@ function buildSteps(pts){ // split into straight-ish legs, turn = left/right by 
 function streetAt(key,pos){const st=MAP.steps[key];let c=0;for(const [n,l] of st){c+=l;if(pos<=c+1)return n}return st[st.length-1][0]}
 const TURN={start:'<path d="M17 28V6M8 15l9-9 9 9"/>',left:'<path d="M24 29V15a4 4 0 0 0-4-4H7M13 5l-6 6 6 6"/>',right:'<path d="M10 29V15a4 4 0 0 1 4-4h13M21 5l6 6-6 6"/>',arrive:'<path d="M17 30c-2-4-9-9-9-16a9 9 0 0 1 18 0c0 7-7 12-9 16z"/><circle cx="17" cy="14" r="3"/>'};
 
+/* ---------- voice ---------- */
+const voice={on:true,leg:-1};
+const canSpeak='speechSynthesis' in window;
+function say(t,urgent){if(!voice.on||!canSpeak)return;if(urgent)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';speechSynthesis.speak(u)}
+function setVoice(on){voice.on=on;$('voice').setAttribute('aria-pressed',on);$('voice').innerHTML=glyph(on?'spk':'spkoff',24,2.2);if(!on&&canSpeak)speechSynthesis.cancel()}
+$('voice').onclick=()=>setVoice(!voice.on);setVoice(true);
+if(!canSpeak)$('voice').hidden=true;
+$('nav-cue').innerHTML=glyph('dropk',18,2.6)+'Dropped kerbs both sides';
+const spoken=m=>m>=100?Math.round(m/10)*10:Math.max(5,Math.round(m/5)*5);
+
 /* ---------- navigation ---------- */
-let s=0,timer=null,alerted=false,legs=[],off=0,key='a',total=0;
-function at(pts,pos){for(let i=1;i<pts.length;i++){const L=dist(pts[i-1],pts[i]);if(pos<=L&&L>0){const t=pos/L;const r=[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];r.h=Math.atan2(pts[i][1]-pts[i-1][1],pts[i][0]-pts[i-1][0])*180/Math.PI+90;return r}pos-=L}const l=pts[pts.length-1].slice();l.h=0;return l}
+let s=0,timer=null,alerted=false,legs=[],off=0,total=0;
 function start(){
-  state.nav=true;state.rerouted=false;alerted=false;s=0;key=state.sel;path=R[key];legs=buildSteps(path);total=plen(path);off=0;
+  state.nav=true;state.rerouted=false;alerted=false;s=0;key=state.sel;path=R[key];legs=buildSteps(path);total=plen(path);off=0;voice.leg=-1;
   show('plan-top',0);show('plan-sheet',0);show('nav-top',1);show('nav-sheet',1);me.g.style.display='';
-  drawRoutes();chrome();follow(path[0],700);setTimeout(tick,reduce?0:750);
+  drawRoutes();chrome();follow(path[0],700);
+  say(`Follow ${streetAt(key,10)} for ${spoken(legs[0].end)} metres.`,true);
+  setTimeout(tick,reduce?0:750);
 }
 function updateNav(){
-  const i=legs.findIndex(l=>l.end>=s);const leg=legs[Math.max(0,i)],nxt=legs[i+1];
+  const ii=Math.max(0,legs.findIndex(l=>l.end>=s));const leg=legs[ii],nxt=legs[ii+1];
   const toTurn=Math.max(0,leg.end-s);
   $('turn-ic').innerHTML=TURN[nxt?nxt.turn:'arrive'];
-  $('nav-dist').textContent=(toTurn>=100?Math.round(toTurn/10)*10:Math.max(5,Math.round(toTurn/5)*5))+' m';
+  $('nav-dist').textContent=spoken(toTurn)+' m';
   const streetKey=state.rerouted?'re':key;
-  if(nxt){$('nav-street').textContent=(nxt.turn==='left'?'Left':'Right')+' onto '+streetAt(streetKey,leg.end-off+20);
-    const n2=legs[i+2];show('nav-next',!!n2);if(n2){$('next-ic').innerHTML=TURN[n2.turn];$('next-txt').textContent='Then '+n2.turn+' onto '+streetAt(streetKey,nxt.end-off+20)}}
+  const cross=!!nxt&&isCrossing(at(path,leg.end));
+  show('nav-cue',cross);
+  if(nxt){const st=streetAt(streetKey,leg.end-off+20);
+    $('nav-street').textContent=(nxt.turn==='left'?'Left':'Right')+' onto '+st;
+    const n2=legs[ii+2];show('nav-next',!!n2);if(n2){$('next-ic').innerHTML=TURN[n2.turn];$('next-txt').textContent='Then '+n2.turn+' onto '+streetAt(streetKey,nxt.end-off+20)}
+    if(toTurn<=90&&voice.leg!==ii){voice.leg=ii;say(`In ${spoken(toTurn)} metres, turn ${nxt.turn} onto ${st}${cross?', using the dropped kerb':''}.`)}}
   else{$('nav-street').textContent='Liberty on your left';show('nav-next',0)}
   const rem=total-s;$('eta').textContent=mins(rem)+' min';$('eta-sub').textContent=`${clock(mins(rem))} · ${Math.round(rem/10)*10} m`;
 }
 function tick(){
   if(!state.nav)return;
-  s=Math.min(total,s+(reduce?60:3.2));
+  const talking=voice.on&&canSpeak&&speechSynthesis.speaking;
+  s=Math.min(total,s+(reduce?60:talking?1.4:3.2));
   const p=at(path,s);me.x=p[0];me.y=p[1];me.rot=p.h;place(me);follow(p,0);updateNav();
   if(!alerted&&key==='a'&&s>190){alerted=true;return showAlert()}
   if(s>=total)return arrive();
   timer=setTimeout(tick,reduce?600:40);
 }
 function showAlert(){
-  const b=MAP.hz.block;blockPin=hazPin(b[0],b[1],'block','var(--bad)',true);
+  if(!$('detail').hidden)closeDetail();
+  const b=MAP.hz.block;
+  blockPin=hazPin(b[0],b[1],'block','var(--bad)',{t:'Pavement blocked',s:'Van across the dropped kerb, Poland St',w:'2 reports · 4 min ago',issue:true},true);
   show('nav-sheet',0);show('alert',1);chrome();
+  say('Pavement blocked on Poland Street ahead.',true);
   fit([at(path,s),b,R.re[0],T],50,700);
 }
 function resume(avoid){
@@ -537,37 +680,61 @@ function resume(avoid){
     const done=[];let c=0;for(let i=0;i<path.length;i++){if(i&&c+dist(path[i-1],path[i])>s)break;if(i)c+=dist(path[i-1],path[i]);done.push(path[i])}
     done.push(at(path,s));
     path=done.concat([R.ward],R.re.slice(1));
-    state.rerouted=true;off=plen(done)+dist(done[done.length-1],R.ward);legs=buildSteps(path);total=plen(path);drawRoutes();
-    toast('Avoiding Poland Street');
+    state.rerouted=true;off=plen(done)+dist(done[done.length-1],R.ward);legs=buildSteps(path);total=plen(path);voice.leg=-1;drawRoutes();
+    toast('Avoiding Poland Street');say('Avoiding Poland Street. Rerouting by Wardour Street.',true);
   }
   tick();
 }
 function arrive(){
+  if(!$('detail').hidden)closeDetail();
   state.nav=false;clearTimeout(timer);
   show('nav-top',0);show('nav-sheet',0);show('done-sheet',1);chrome();
+  say('You have arrived. Liberty is on your left.');
   const r=state.reports;
   $('done-text').textContent=`${Math.round(total/10)*10} m logged · ${state.rerouted?9:7} kerbs measured`+(r?` · ${r} report${r>1?'s':''} sent`:'');
   fit(path,40,700);
 }
 function reset(){
   clearTimeout(timer);state.nav=false;state.rerouted=false;path=R[state.sel];
-  if(blockPin){blockPin.g.remove();PINS.splice(PINS.indexOf(blockPin),1);blockPin=null}
+  if(canSpeak)speechSynthesis.cancel();
+  if(!$('detail').hidden){show('detail',0);dtPrev=dtPin=null}
+  if(blockPin){unpin(blockPin);blockPin=null}
   ['nav-top','nav-sheet','alert','done-sheet'].forEach(i=>show(i,0));me.g.style.display='none';
-  show('plan-top',1);show('plan-sheet',1);drawRoutes();chrome();fit(R.a.concat(R.b),36,600);
+  show('plan-top',1);show('plan-sheet',1);drawRoutes();chrome();fit(VIEW,36,600);
 }
 $('go').onclick=start;$('end').onclick=reset;$('again').onclick=reset;
 $('keep').onclick=()=>resume(false);$('reroute').onclick=()=>resume(true);
-$('locate').onclick=()=>fit(state.nav?path:R.a.concat(R.b),36,500);
+$('locate').onclick=()=>fit(state.nav?path:VIEW,36,500);
+
+/* ---------- place details ---------- */
+let dtPin=null,dtPrev=null;
+const SHEETS=['plan-sheet','nav-sheet','alert','done-sheet'];
+function openDetail(p){
+  if(!$('report').hidden)return;
+  dtPin=p;const i=p.info;
+  if($('detail').hidden){dtPrev=SHEETS.find(x=>!$(x).hidden)||null;SHEETS.forEach(x=>show(x,0))}
+  const ic=$('dt-ic');ic.innerHTML=glyph(i.k,26);ic.style.color=i.c;ic.style.background=`color-mix(in srgb, ${i.c} 15%, var(--surface))`;
+  $('dt-t').textContent=i.t;$('dt-s').textContent=i.s;$('dt-w').textContent=i.w;
+  show('dt-issue',i.issue);show('dt-close',!i.issue);
+  show('detail',1);chrome();
+}
+function closeDetail(){show('detail',0);if(dtPrev)show(dtPrev,1);dtPrev=dtPin=null;chrome()}
+function confirmed(){state.reports++;$('rep-count').textContent=12+state.reports}
+$('dt-x').onclick=closeDetail;$('dt-close').onclick=closeDetail;
+$('dt-still').onclick=()=>{const i=dtPin.info;i.w='Confirmed just now';confirmed();addFeed(i.t,'Still there · just now','queue','Confirmed',i.k,true);closeDetail();toast('Thanks, confirmed')};
+$('dt-clear').onclick=()=>{const p=dtPin,i=p.info;p.g.style.opacity=.35;i.w='Marked cleared just now';i.issue=false;confirmed();addFeed(i.t,'Cleared · just now','fixed','Cleared',i.k,true);closeDetail();toast('Marked as cleared')};
+$('liftchip').onclick=()=>P.lift&&openDetail(P.lift);
 
 /* ---------- report ---------- */
-const TYPES=[['block','Blocked pavement'],['kerb','No dropped kerb'],['car','Car on pavement'],['lift','Lift out'],['rough','Rough surface'],['slope','Too steep']];
+const TYPES=[['block','Blocked pavement'],['works','Roadworks'],['kerb','No dropped kerb'],['car','Car on pavement'],['lift','Lift out'],['rough','Rough surface'],['slope','Too steep'],['narrow','Narrow pavement'],['xslope','Sideways slope']];
 let pending=null;
 function openReport(){
+  if(!$('detail').hidden)closeDetail();
   $('rep-title').textContent="What's in the way?";show('rgrid',1);show('photo-step',0);
   $('rgrid').innerHTML='';
   for(const [k,label] of TYPES){
     const b=document.createElement('button');b.className='rt-tile';
-    b.innerHTML=`<span class="ic"><svg width="24" height="24" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg></span>${label}`;
+    b.innerHTML=`<span class="ic">${glyph(k)}</span>${label}`;
     b.onclick=()=>{if(k==='car'){pending=[k,label];$('rep-title').textContent='Car on pavement';show('rgrid',0);show('photo-step',1);return}b.classList.add('sent');send(k,label)};
     $('rgrid').appendChild(b);
   }
@@ -577,8 +744,8 @@ function closeReport(){show('scrim',0);show('report',0)}
 function send(k,label,photo){
   state.reports++;
   const p=state.nav?[me.x,me.y]:[cam.x,cam.y];
-  const col=k==='kerb'||k==='rough'||k==='slope'?'var(--warn)':'var(--bad)';
-  hazPin(p[0]+14,p[1]-14,k,col,true);
+  const col=['kerb','rough','slope','narrow','xslope'].includes(k)?'var(--warn)':'var(--bad)';
+  hazPin(p[0]+14,p[1]-14,k,col,{t:label,s:'Reported by you',w:'Just now',issue:true},true);
   addFeed(label,'Just now'+(photo?' · photo':''),'new','Sent',k,true);
   $('rep-count').textContent=12+state.reports;
   setTimeout(closeReport,300);toast('Sent to Westminster Council');
@@ -591,7 +758,7 @@ let tt;function toast(t){$('toast-t').textContent=t;show('toast',1);clearTimeout
 /* ---------- streets feed ---------- */
 function addFeed(w,p,cls,tag,icon,top){
   const li=document.createElement('li');
-  li.innerHTML=`<span class="fi ${cls}"><svg width="20" height="20" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ICON[icon]}</svg></span><span class="w">${w}</span><span class="tag ${cls}">${tag}</span><span class="p">${p}</span>`;
+  li.innerHTML=`<span class="fi ${cls}">${glyph(icon,20,2.6)}</span><span class="w">${w}</span><span class="tag ${cls}">${tag}</span><span class="p">${p}</span>`;
   top?$('feed').prepend(li):$('feed').appendChild(li);
 }
 [['Dropped kerb added','Berwick St × Peter St · 2 Nov','fixed','Fixed','kerb'],
@@ -604,13 +771,19 @@ function addFeed(w,p,cls,tag,icon,top){
 $('sense').onclick=()=>{state.sensing=!state.sensing;$('sense').setAttribute('aria-pressed',state.sensing)};
 setInterval(()=>{if(state.sensing&&state.nav){const k=$('kerbs');k.textContent=+k.textContent+1}},2500);
 
-/* ---------- chair ---------- */
+/* ---------- profile ---------- */
 const FIELDS=[['kerb',' cm'],['slope','%'],['range',' km']];
 for(const [id,u] of FIELDS)$(id).oninput=e=>{state[id]=+e.target.value;$(id+'-o').textContent=fmt(e.target.value)+u;renderRoutes()};
-$('chair').onclick=e=>{const b=e.target.closest('button');if(!b)return;
-  [...$('chair').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
-  const pre={manual:[3,8,6],powered:[5,10,20],scooter:[2,6,25]}[b.dataset.v];
-  FIELDS.forEach(([id,u],i)=>{$(id).value=pre[i];state[id]=pre[i];$(id+'-o').textContent=pre[i]+u});renderRoutes()};
+function setMode(m){
+  const pr=PRESET[m];state.mode=m;
+  Object.assign(state,{kerb:pr.kerb,slope:pr.slope,range:pr.range,speed:pr.speed,avoid:{...pr.avoid}});
+  [...$('mode').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===m));
+  FIELDS.forEach(([id,u])=>{$(id).value=state[id];$(id+'-o').textContent=fmt(state[id])+u});
+  document.querySelectorAll('#avoid input').forEach(c=>{c.checked=!!state.avoid[c.dataset.k];c.disabled=pr.lock.includes(c.dataset.k)});
+  renderRoutes();
+}
+$('mode').onclick=e=>{const b=e.target.closest('button');if(b)setMode(b.dataset.v)};
+$('avoid').onchange=e=>{const c=e.target;if(c.dataset.k){state.avoid[c.dataset.k]=c.checked;renderRoutes()}};
 
 /* ---------- tabs ---------- */
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -619,6 +792,6 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
   if(b.dataset.s==='map'){apply();chrome()}
 };
 
-renderRoutes();drawRoutes();chrome();fit(R.a.concat(R.b),36,0);
-new ResizeObserver(()=>{chrome();state.nav?apply():fit(R.a.concat(R.b),36,0)}).observe($('app'));
+setMode('wheelchair');drawRoutes();chrome();fit(VIEW,36,0);
+new ResizeObserver(()=>{chrome();state.nav?apply():fit(VIEW,36,0)}).observe($('app'));
 </script>

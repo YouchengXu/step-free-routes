@@ -2,7 +2,7 @@
 
 I&E Team 14 app prototype: step-free wheelchair routing through Soho, London.
 
-Live: https://candfire.com/step-free-routes/
+Live: https://disable-route-planner.github.io/
 
 Rebuild the map after editing `template.html`:
 
